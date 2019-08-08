@@ -1,0 +1,52 @@
+plugins {
+    id 'java'
+    id "io.freefair.lombok" version "3.8.0"
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+def dagger_version = '2.23.2'
+def aws_sdk_version = '1.11.596'
+dependencies {
+    compile "com.google.dagger:dagger:$dagger_version"
+    annotationProcessor "com.google.dagger:dagger-compiler:$dagger_version"
+
+    compile 'com.amazonaws:aws-lambda-java-core:1.1.0'
+    compile group: 'com.amazonaws', name: 'aws-lambda-java-log4j2', version: '1.1.0'
+
+    compile group: 'com.amazonaws', name: 'aws-lambda-java-events', version: '2.2.6'
+    compile "com.amazonaws:aws-java-sdk-dynamodb:$aws_sdk_version"
+    
+    compile 'com.fasterxml.jackson.core:jackson-core:2.8.5'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.8.5'
+    compile 'com.fasterxml.jackson.core:jackson-annotations:2.8.5'
+    
+    compile group: 'com.google.guava', name: 'guava', version: '28.0-jre'
+    
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+// Task for building the zip file for upload
+task buildZip(type: Zip) {
+    // Using the Zip API from gradle to build a zip file of all the dependencies
+    //
+    // The path to this zip file can be set in the serverless.yml file for the
+    // package/artifact setting for deployment to the S3 bucket
+    //
+    // Link: https://docs.gradle.org/current/dsl/org.gradle.api.tasks.bundling.Zip.html
+
+    // set the base name of the zip file
+    baseName = "hello"
+    from compileJava
+    from processResources
+    into('lib') {
+        from configurations.runtime
+    }
+}
+
+build.dependsOn buildZip
